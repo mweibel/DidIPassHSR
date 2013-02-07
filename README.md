@@ -11,11 +11,11 @@ heroku create
 heroku addons:add scheduler:standard
 heroku addons:add redistogo:nano
 # Add configuration
-heroku config:add notifier='Prowl' # Prowl notifier (currently the only available)
-heroku config:add hsr_username='<your-hsr-username>'
-heroku config:add hsr_password='<your-hsr-password>'
-heroku config:add prowl_api_key='<prowl-api-key>'
-heroku config:add cache='Redis'
+heroku config:add NOTIFIER='Prowl' # Prowl notifier (currently the only available)
+heroku config:add HSR_USERNAME='<your-hsr-username>'
+heroku config:add HSR_PASSWORD='<your-hsr-password>'
+heroku config:add PROWL_API_KEY='<prowl-api-key>'
+heroku config:add CACHE='Redis'
 
 # Push to heroku
 git push heroku master
@@ -41,6 +41,7 @@ export HSR_USERNAME='<your-hsr-username>'
 export HSR_PASSWORD='<your-hsr-password>'
 export PROWL_API_KEY='<prowl-api-key>'
 export CACHE='Redis' or export CACHE='File'
+export CACHE_PATH='<path>' # if CACHE='FILE' && default path is not working for you (pwd of task.rb + /.cache)
 
 # Edit crontab to add it
 crontab -e
