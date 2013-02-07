@@ -13,7 +13,7 @@
 #
 require 'rubygems'
 require 'bundler'
-require 'JSON'
+require 'json'
 
 Bundler.require(:default, (ENV['RACK_ENV'] ||= :development.to_s).to_sym)
 
