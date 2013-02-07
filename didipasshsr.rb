@@ -13,7 +13,7 @@
 #
 require 'rubygems'
 require 'bundler'
-require 'mechanize'
+require 'JSON'
 
 Bundler.require(:default, (ENV['RACK_ENV'] ||= :development.to_s).to_sym)
 
@@ -35,7 +35,7 @@ module DidIPassHSR
 				@notifier = Notifiers::DryNotifier.new(env)
 			end
 
-			@cache = Cache.new(env)
+			@cache = Cache.const_get("#{env['CACHE']}Cache").new(env)
 			@mechanize_agent = Mechanize.new
 		end
 
@@ -96,46 +96,82 @@ module DidIPassHSR
 		end
 	end
 
-	class Cache
-		def initialize(env)
-			if not env['CACHE_PATH']
-				@path = File.join(Dir.pwd, ".cache")
-			else
-				@path = env['CACHE_PATH']
+	module Cache
+		class Interface
+			def initialize(env)
+				raise NotImplementedError
 			end
-			if not Dir.exists?(@path)
-				Dir.mkdir(@path)
+
+			def get(semester)
+				raise NotImplementedError
+			end
+
+			def set(semester, grades)
+				raise NotImplementedError
 			end
 		end
 
-		def get(semester)
-			filename = File.join(@path, "#{semester}.cache")
-			if not File.exists?(filename)
+		class FileCache < Interface
+			def initialize(env)
+				if not env['CACHE_PATH']
+					@path = File.join(Dir.pwd, ".cache")
+				else
+					@path = env['CACHE_PATH']
+				end
+				if not Dir.exists?(@path)
+					Dir.mkdir(@path)
+				end
+			end
+
+			def get(semester)
+				filename = File.join(@path, "#{semester}.cache")
+				if not File.exists?(filename)
+					return {}
+				end
+				file = File.open(filename)
+
+				grades = {}
+				while (line = file.gets)
+					desc, grade = line.split("::")
+					grades[desc] = grade
+				end
+				file.close
+
+				return grades
+			end
+
+			def set(semester, grades)
+				file = File.open(File.join(@path, "#{semester}.cache"), "w")
+				grades.each do |desc, grade|
+					file.write("#{desc}::#{grade}\n")
+				end
+				file.close
+			end
+		end
+
+		class RedisCache < Interface
+
+			def initialize(env)
+				uri = URI.parse(ENV['REDISTOGO_URL'] || ENV['REDISCLOUD_URL'] || ENV['MYREDIS_URL'] || 'http://localhost:6379')
+      			@cache = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
+			end
+
+			def get(semester)
+				cached = @cache.get(semester)
+				if cached != nil
+					JSON.parse(cached)
+				end
 				return {}
 			end
-			file = File.open(filename)
 
-			grades = {}
-			while (line = file.gets)
-				desc, grade = line.split("::")
-				grades[desc] = grade
+			def set(semester, grades)
+				return @cache.set(semester, grades.to_json())
 			end
-			file.close
-
-			return grades
-		end
-
-		def set(semester, grades)
-			file = File.open(File.join(@path, "#{semester}.cache"), "w")
-			grades.each do |desc, grade|
-				file.write("#{desc}::#{grade}\n")
-			end
-			file.close
 		end
 	end
 
 	module Notifiers
-		class Abstract
+		class Interface
 			def initialize(env)
 				raise NotImplementedError
 			end
@@ -149,7 +185,7 @@ module DidIPassHSR
 			end
 		end
 
-		class DryNotifier < Abstract
+		class DryNotifier < Interface
 			def initialize(env)
 				puts "Dry run..."
 			end
@@ -164,7 +200,8 @@ module DidIPassHSR
 		end
 
 
-		class ProwlNotifier < Abstract
+		class ProwlNotifier < Interface
+
 			def initialize(env)
 				@p = Prowl.new(:apikey => env['PROWL_API_KEY'], :application => 'Did I Pass')
 			end
