@@ -15,6 +15,7 @@ heroku config:add notifier='Prowl' # Prowl notifier (currently the only availabl
 heroku config:add hsr_username='<your-hsr-username>'
 heroku config:add hsr_password='<your-hsr-password>'
 heroku config:add prowl_api_key='<prowl-api-key>'
+heroku config:add cache='Redis'
 
 # Push to heroku
 git push heroku master
@@ -34,11 +35,12 @@ git clone https://github.com/mweibel/DidIPass.git && cd DidIPass
 # Install dependencies
 bundle install
 
-# Configuration
-heroku config:add notifier='Prowl' # Prowl notifier (currently the only available)
-heroku config:add hsr_username='<your-hsr-username>'
-heroku config:add hsr_password='<your-hsr-password>'
-heroku config:add prowl_api_key='<prowl-api-key>'
+# Configuration (might be needed to prefix before the command in the cronjob config
+export NOTIFIER='Prowl'
+export HSR_USERNAME='<your-hsr-username>'
+export HSR_PASSWORD='<your-hsr-password>'
+export PROWL_API_KEY='<prowl-api-key>'
+export CACHE='Redis' or export CACHE='File'
 
 # Edit crontab to add it
 crontab -e
