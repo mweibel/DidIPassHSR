@@ -32,7 +32,7 @@ module DidIPassHSR
 				@notifier = Notifiers.const_get("#{env['NOTIFIER']}Notifier").new(env)
 				abort 'Error: Invalid Notifier' if not @notifier.valid?
 			else
-				@notifier = Notifiers::Dry.new(env)
+				@notifier = Notifiers::DryNotifier.new(env)
 			end
 
 			@cache = Cache.new(env)
