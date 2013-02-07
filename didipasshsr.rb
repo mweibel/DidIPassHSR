@@ -42,6 +42,7 @@ module DidIPassHSR
 		def run()
 			@mechanize_agent.add_auth(LOGIN_URL, @env['HSR_USERNAME'], @env['HSR_PASSWORD'])
 			@mechanize_agent.get(LOGIN_URL) do |page|
+				puts "Loaded Page..."
 				login(page)
 				report = fetch_report()
 				semester, grades = parse(report)
@@ -50,6 +51,7 @@ module DidIPassHSR
 		end
 
 		def login(page)
+			puts "Logging in..."
 			form = page.form('hiddenform')
 			if form
 				form['ctl00_ContentPlaceHolder1_UsernameTextBox'] = @env['HSR_USERNAME']
@@ -60,11 +62,12 @@ module DidIPassHSR
 		end
 
 		def fetch_report()
+			print "Fetching report..."
 			return @mechanize_agent.get(REPORT_URL)
 		end
 
 		def parse(report)
-			# could be beautified, but firebug's xpath copy function is so useful
+			puts "Parsing report..."
 			semester = report.search(SEMESTER_XPATH).text
 			semester = semester.gsub(/[^a-zA-Z0-9]/u, '-')
 
@@ -80,6 +83,7 @@ module DidIPassHSR
 		end
 
 		def notify(semester, grades)
+			puts "Notifying..."
 			notified = 0
 			sem_cache = @cache.get(semester)
 			grades.each do |desc, new_grade|
