@@ -52,3 +52,11 @@ crontab -e
 
 ## License
 DidIPassHSR is released under MIT License (see LICENSE).
+
+## Contribute
+Following stuff would be easily doable and a nice to have:
+
+  - Configuration with e.g. a YAML file instead of ENV variables for setups w/o heroku
+  - More notifiers
+
+
