@@ -52,18 +52,26 @@ module DidIPassHSR
 
 		def login(page)
 			puts "Logging in..."
+			form = page.form('aspnetForm')
+			if form
+				form['ctl00$ContentPlaceHolder1$UsernameTextBox'] = @env['HSR_USERNAME']
+				form['ctl00$ContentPlaceHolder1$PasswordTextBox'] = @env['HSR_PASSWORD']
+				@mechanize_agent.submit(form, form.buttons.first)
+			end
+		end
+
+		def login_hiddenform(page)
+			# ?? I don't know why but yes, that's how it works.
 			form = page.form('hiddenform')
 			if form
-				form['ctl00_ContentPlaceHolder1_UsernameTextBox'] = @env['HSR_USERNAME']
-				form['ctl00_ContentPlaceHolder1_PasswordTextBox'] = @env['HSR_PASSWORD']
-
 				@mechanize_agent.submit(form, form.buttons.first)
 			end
 		end
 
 		def fetch_report()
 			print "Fetching report..."
-			return @mechanize_agent.get(REPORT_URL)
+			page = @mechanize_agent.get(REPORT_URL)
+			login_hiddenform(page)
 		end
 
 		def parse(report)
