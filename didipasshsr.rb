@@ -14,6 +14,7 @@
 require 'rubygems'
 require 'bundler'
 require 'json'
+require 'mail'
 
 Bundler.require(:default, (ENV['RACK_ENV'] ||= :development.to_s).to_sym)
 
@@ -213,7 +214,6 @@ module DidIPassHSR
 
 
 		class ProwlNotifier < Interface
-
 			def initialize(env)
 				@p = Prowl.new(:apikey => env['PROWL_API_KEY'], :application => 'Did I Pass')
 			end
@@ -234,6 +234,51 @@ module DidIPassHSR
 				description = "#{semester} - #{grade}"
 
 				@p.add(:event => event, :description => description)
+			end
+		end
+
+		class EmailNotifier < Interface
+			def initialize(env)
+				abort 'Error: NOTIFICATION_EMAIL variable not set' if not ENV['NOTIFICATION_EMAIL']
+				Mail.defaults do
+					delivery_method :smtp, { :address => 'smtp.sendgrid.net',
+																	 :port => 587,
+																	 :authentication => 'plain',
+																	 :user_name => ENV['SENDGRID_USERNAME'],
+																	 :password => ENV['SENDGRID_PASSWORD'],
+																	 :domain => 'heroku.com',
+																	 :enable_starttls_auto => true }
+				end
+			end
+
+			def valid?
+				return true
+			end
+
+			def notify(semester, grade)
+				if grade < 4
+					subj = 'NAY!'
+				elsif grade > 5
+					subj = 'WOW!'
+				else
+					subj = 'YAY!'
+				end
+
+				body_text = "Semester #{semester} - Grade #{grade}.\n\nBrought to you by https://github.com/mweibel/DidIPassHSR"
+
+				mail = Mail.deliver do
+					to ENV['NOTIFICATION_EMAIL']
+					from 'Did I Pass <michael.weibel+didipass@gmail.com>'
+					subject "[DidIPass] #{subj}"
+					text_part do
+						body body_text
+					end
+					html_part do
+						content_type 'text/html; charset=UTF-8'
+						body "<b>#{body_text}</b>"
+					end
+				end
+				puts "Email probably sent."
 			end
 		end
 	end
