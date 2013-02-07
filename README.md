@@ -1,4 +1,4 @@
-# Did I Pass for unterricht.hsr.ch
+# Did I Pass for HSR
 
 ## Installation on Heroku
 ```
