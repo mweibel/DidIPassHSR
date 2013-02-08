@@ -59,4 +59,7 @@ Following stuff would be easily doable and a nice to have:
   - Configuration with e.g. a YAML file instead of ENV variables for setups w/o heroku
   - More notifiers
 
-
+## Testing
+1. Export all needed environment variables as usual
+2. Run `ruby test.rb`
+3. SUCCESS OR FAIL?

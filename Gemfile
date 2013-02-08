@@ -1,5 +1,7 @@
 source 'https://rubygems.org'
-gem 'prowl'
 gem 'mechanize'
-gem 'redis'
 gem 'json'
+
+gem 'prowl', :require => false
+gem 'redis', :require => false
+gem 'mocha', :require => false

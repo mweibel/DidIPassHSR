@@ -12,7 +12,10 @@ GEM
       nokogiri (~> 1.4)
       ntlm-http (~> 0.1, >= 0.1.1)
       webrobots (~> 0.0, >= 0.0.9)
+    metaclass (0.0.1)
     mime-types (1.20.1)
+    mocha (0.13.2)
+      metaclass (~> 0.0.1)
     net-http-digest_auth (1.2.1)
     net-http-persistent (2.8)
     nokogiri (1.5.6)
@@ -30,5 +33,6 @@ PLATFORMS
 DEPENDENCIES
   json
   mechanize
+  mocha
   prowl
   redis

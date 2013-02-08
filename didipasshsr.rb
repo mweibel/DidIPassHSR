@@ -20,8 +20,11 @@ Bundler.require(:default, (ENV['RACK_ENV'] ||= :development.to_s).to_sym)
 module DidIPassHSR
 
 	class Runner
-		SEMESTER_XPATH = '//div[@id="13xB_gr"]/table[1]/tr[2]/td[1]/table/tr[7]/td[2]/div'
-		GRADES_XPATH = '//div[@id="13xB_gr"]/table[1]/tr[4]/td[1]/table/tr'
+		attr_accessor :notifier
+		attr_accessor :cache
+
+		SEMESTER_XPATH = '//div[@id="13xB_gr"]/table[1]//tr[2]/td[1]/table//tr[7]/td[2]/div'
+		GRADES_XPATH = '//div[@id="13xB_gr"]/table[1]//tr[4]/td[1]/table//tr'
 
 		LOGIN_URL = 'https://adfs.hsr.ch/adfs/ls/?wa=wsignin1.0&wtrealm=https%3a%2f%2funterricht.hsr.ch%3a443%2f&wctx=https%3a%2f%2funterricht.hsr.ch%2f'
 		REPORT_URL = 'https://unterricht.hsr.ch/MyStudy/Reporting/TermReport'
@@ -30,7 +33,6 @@ module DidIPassHSR
 			@env = env
 			if not env['DRY_RUN']
 				@notifier = Notifiers.const_get("#{env['NOTIFIER']}Notifier").new(env)
-				abort 'Error: Invalid Notifier' if not @notifier.valid?
 			else
 				@notifier = Notifiers::DryNotifier.new(env)
 			end
@@ -77,14 +79,14 @@ module DidIPassHSR
 		def parse(report)
 			puts "Parsing report..."
 			semester = report.search(SEMESTER_XPATH).text
-			semester = semester.gsub(/[^a-zA-Z0-9]/u, '-')
+			semester = semester.gsub(/[\r\n\t ]/, '').gsub(/[^a-zA-Z0-9]/u, '-')
 
 			grades = {}
 			report.search(GRADES_XPATH)[3..-3].each do |tr|
 				tds = tr.search('td')
 				description = tds[2].search('div/div/div/a').text
-				grade = tds[3].children[0].text
-				grades[description] = grade
+				grade = tds[3].children.text || tds[3].children[0].text
+				grades[description] = grade.gsub(/[^*0-9.]/, '')
 			end
 
 			return semester, grades
@@ -97,7 +99,7 @@ module DidIPassHSR
 			grades.each do |desc, new_grade|
 				cached_grade = sem_cache[desc]
 				if (not cached_grade or cached_grade == "***") and new_grade != "***"
-					@notifier.notify(desc, new_grade)
+					@notifier.notify(desc, new_grade.to_f)
 					sem_cache[desc] = new_grade
 					notified += 1
 				end
@@ -119,6 +121,10 @@ module DidIPassHSR
 			end
 
 			def set(semester, grades)
+				raise NotImplementedError
+			end
+
+			def flush
 				raise NotImplementedError
 			end
 		end
@@ -159,6 +165,11 @@ module DidIPassHSR
 				end
 				file.close
 			end
+
+			def flush
+				require 'fileutils'
+				FileUtils.rm_rf(File.join(@path, "*"))
+			end
 		end
 
 		class RedisCache < Interface
@@ -179,16 +190,16 @@ module DidIPassHSR
 			def set(semester, grades)
 				return @cache.set(semester, grades.to_json())
 			end
+
+			def flush
+				@cache.flushall
+			end
 		end
 	end
 
 	module Notifiers
 		class Interface
 			def initialize(env)
-				raise NotImplementedError
-			end
-
-			def valid?
 				raise NotImplementedError
 			end
 
@@ -202,10 +213,6 @@ module DidIPassHSR
 				puts "Dry run..."
 			end
 
-			def valid?
-				return true
-			end
-
 			def notify(semester, grade)
 				puts "#{semester} - #{grade}"
 			end
@@ -213,19 +220,17 @@ module DidIPassHSR
 
 
 		class ProwlNotifier < Interface
+			require 'prowl'
 
 			def initialize(env)
 				@p = Prowl.new(:apikey => env['PROWL_API_KEY'], :application => 'Did I Pass')
-			end
-
-			def valid?
-				return @p.valid?
+				abort 'Invalid Prowl API Key' unless @p.valid?
 			end
 
 			def notify(semester, grade)
 				if grade < 4
 					event = 'NAY!'
-				elsif grade > 5
+				elsif grade >= 5
 					event = 'WOW!'
 				else
 					event = 'YAY!'
