@@ -221,8 +221,8 @@ module DidIPassHSR
 				puts "Dry run..."
 			end
 
-			def notify(semester, grade)
-				puts "#{semester} - #{grade}"
+			def notify(desc, grade)
+				puts "#{desc} - #{grade}"
 			end
 		end
 
@@ -238,7 +238,7 @@ module DidIPassHSR
 				abort 'Invalid PROWL_API_KEY' unless @p.valid?
 			end
 
-			def notify(semester, grade)
+			def notify(desc, grade)
 				if grade < 4
 					event = 'NAY!'
 				elsif grade >= 5
@@ -247,7 +247,7 @@ module DidIPassHSR
 					event = 'YAY!'
 				end
 
-				description = "#{semester} - #{grade}"
+				description = "#{desc} - #{grade}"
 
 				@p.add(:event => event, :description => description)
 			end
@@ -269,7 +269,7 @@ module DidIPassHSR
 				end
 			end
 
-			def notify(semester, grade)
+			def notify(desc, grade)
 				if grade < 4
 					subj = 'NAY!'
 				elsif grade > 5
@@ -278,8 +278,8 @@ module DidIPassHSR
 					subj = 'YAY!'
 				end
 
-				body_text = "Semester #{semester} - Grade #{grade}.\n\nSee #{Runner::REPORT_URL} for more."
-				body_html = "<b>Semester #{semester} - Grade #{grade}.</b><br/>\n<br/>\nSee <a href='#{Runner::REPORT_URL}'>the report</a> for more infos."
+				body_text = "Module '#{desc}' - Grade #{grade}.\n\nSee #{Runner::REPORT_URL} for more."
+				body_html = "<b>Module <i>#{desc}</i> - Grade #{grade}.</b><br/>\n<br/>\nSee <a href='#{Runner::REPORT_URL}'>the report</a> for more infos."
 
 				mail = Mail.deliver do
 					to ENV['NOTIFICATION_EMAIL']
