@@ -101,6 +101,7 @@ module DidIPassHSR
 		def notify(semester, grades)
 			puts "Notifying..."
 			notified = 0
+			print semester
 			sem_cache = @cache.get(semester)
 			puts sem_cache
 			grades.each do |desc, new_grade|
