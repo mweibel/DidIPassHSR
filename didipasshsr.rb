@@ -192,9 +192,12 @@ module DidIPassHSR
 
 			def get(semester)
 				cached = @cache.get(semester)
+				print cached
 				if cached != nil
-					JSON.parse(cached)
+					print JSON.parse(cached)
+					return JSON.parse(cached)
 				end
+				print 'foobar'
 				return {}
 			end
 
