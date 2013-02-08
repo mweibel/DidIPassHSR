@@ -173,7 +173,7 @@ module DidIPassHSR
 		end
 
 		class RedisCache < Interface
-
+			require 'redis'
 			def initialize(env)
 				uri = URI.parse(ENV['REDISTOGO_URL'] || ENV['REDISCLOUD_URL'] || ENV['MYREDIS_URL'] || 'http://localhost:6379')
 				@cache = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
