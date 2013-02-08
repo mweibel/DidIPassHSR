@@ -277,8 +277,8 @@ module DidIPassHSR
 					subj = 'YAY!'
 				end
 
-				body_text = "Semester #{semester} - Grade #{grade}.\n\nSee #{REPORT_URL} for more."
-				body_html = "<b>Semester #{semester} - Grade #{grade}.</b><br/>\n<br/>\nSee <a href='#{REPORT_URL}'>the report</a> for more infos."
+				body_text = "Semester #{semester} - Grade #{grade}.\n\nSee #{Runner::REPORT_URL} for more."
+				body_html = "<b>Semester #{semester} - Grade #{grade}.</b><br/>\n<br/>\nSee <a href='#{Runner::REPORT_URL}'>the report</a> for more infos."
 
 				mail = Mail.deliver do
 					to ENV['NOTIFICATION_EMAIL']
