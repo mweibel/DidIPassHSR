@@ -106,12 +106,13 @@ module DidIPassHSR
 			grades.each do |desc, new_grade|
 				cached_grade = sem_cache[desc]
 				puts cached_grade
-				if (not cached_grade or cached_grade == "***") and new_grade != "***"
+				if (not cached_grade or cached_grade == "***") and new_grade != "***" and new_grade != cached_grade
 					@notifier.notify(desc, new_grade.to_f)
 					sem_cache[desc] = new_grade
 					notified += 1
 				end
 			end
+			puts sem_cache
 			@cache.set(semester, sem_cache)
 
 			return notified
@@ -197,6 +198,8 @@ module DidIPassHSR
 			end
 
 			def set(semester, grades)
+				puts semester
+				puts grades
 				return @cache.set(semester, grades.to_json())
 			end
 
