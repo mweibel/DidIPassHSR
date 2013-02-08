@@ -10,12 +10,8 @@
 # Don't overload the HSR servers with the cronjob!
 #
 
-require 'rubygems'
-require 'bundler'
 require 'nokogiri'
 require './didipasshsr'
-
-Bundler.require(:default, (ENV['RACK_ENV'] ||= :test.to_s).to_sym)
 
 TEST_GRADES = {
 	'Test 1 for DidIPassHSR' => '***',
