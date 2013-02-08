@@ -13,7 +13,6 @@
 require 'rubygems'
 require 'bundler'
 require 'nokogiri'
-require 'fileutils'
 require './didipasshsr'
 
 Bundler.require(:default, (ENV['RACK_ENV'] ||= :test.to_s).to_sym)
