@@ -201,7 +201,9 @@ module DidIPassHSR
 			def set(semester, grades)
 				puts semester
 				puts grades
-				return @cache.set(semester, grades.to_json())
+				ret = @cache.set(semester, grades.to_json())
+				puts ret
+				return ret
 			end
 
 			def flush
