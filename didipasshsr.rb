@@ -207,6 +207,7 @@ module DidIPassHSR
 			end
 
 			def flush
+				puts "Flushing...................!!"
 				@cache.flushall
 			end
 		end
