@@ -104,6 +104,7 @@ module DidIPassHSR
 			sem_cache = @cache.get(semester)
 			grades.each do |desc, new_grade|
 				cached_grade = sem_cache[desc]
+				puts cached_grade
 				if (not cached_grade or cached_grade == "***") and new_grade != "***"
 					@notifier.notify(desc, new_grade.to_f)
 					sem_cache[desc] = new_grade
