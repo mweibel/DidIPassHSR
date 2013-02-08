@@ -32,16 +32,22 @@ module DidIPassHSR
 		def initialize(env)
 			@env = env
 			if not env['DRY_RUN']
+				abort 'ERROR: NOTIFIER not set.' unless env['NOTIFIER']
+
 				@notifier = Notifiers.const_get("#{env['NOTIFIER']}Notifier").new(env)
 			else
 				@notifier = Notifiers::DryNotifier.new(env)
 			end
 
+			abort 'ERROR: CACHE not set.' unless env['CACHE']
 			@cache = Cache.const_get("#{env['CACHE']}Cache").new(env)
 			@mechanize_agent = Mechanize.new
 		end
 
 		def run()
+			abort 'ERROR: HSR_USERNAME not set.' unless env['HSR_USERNAME']
+			abort 'ERROR: HSR_PASSWORD not set.' unless env['HSR_PASSWORD']
+
 			@mechanize_agent.add_auth(LOGIN_URL, @env['HSR_USERNAME'], @env['HSR_PASSWORD'])
 			@mechanize_agent.get(LOGIN_URL) do |page|
 				puts "Loaded Page..."
@@ -174,6 +180,7 @@ module DidIPassHSR
 
 		class RedisCache < Interface
 			require 'redis'
+
 			def initialize(env)
 				uri = URI.parse(ENV['REDISTOGO_URL'] || ENV['REDISCLOUD_URL'] || ENV['MYREDIS_URL'] || 'http://localhost:6379')
 				@cache = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
@@ -223,8 +230,11 @@ module DidIPassHSR
 			require 'prowl'
 
 			def initialize(env)
+				abort 'ERROR: PROWL_API_KEY not set.' unless env['PROWL_API_KEY']
+
 				@p = Prowl.new(:apikey => env['PROWL_API_KEY'], :application => 'Did I Pass')
-				abort 'Invalid Prowl API Key' unless @p.valid?
+
+				abort 'Invalid PROWL_API_KEY' unless @p.valid?
 			end
 
 			def notify(semester, grade)
@@ -244,8 +254,9 @@ module DidIPassHSR
 
 		class EmailNotifier < Interface
 			require 'mail'
+
 			def initialize(env)
-				abort 'Error: NOTIFICATION_EMAIL variable not set' if not ENV['NOTIFICATION_EMAIL']
+				abort 'Error: NOTIFICATION_EMAIL variable not set' unless ENV['NOTIFICATION_EMAIL']
 				Mail.defaults do
 					delivery_method :smtp, { :address => 'smtp.sendgrid.net',
 																	 :port => 587,
@@ -266,7 +277,8 @@ module DidIPassHSR
 					subj = 'YAY!'
 				end
 
-				body_text = "Semester #{semester} - Grade #{grade}.\n\nBrought to you by https://github.com/mweibel/DidIPassHSR"
+				body_text = "Semester #{semester} - Grade #{grade}.\n\nSee #{REPORT_URL} for more."
+				body_html = "<b>Semester #{semester} - Grade #{grade}.</b><br/>\n<br/>\nSee <a href='#{REPORT_URL}'>the report</a> for more infos."
 
 				mail = Mail.deliver do
 					to ENV['NOTIFICATION_EMAIL']
@@ -277,7 +289,7 @@ module DidIPassHSR
 					end
 					html_part do
 						content_type 'text/html; charset=UTF-8'
-						body "<b>#{body_text}</b>"
+						body body_html
 					end
 				end
 				puts "Email probably sent."
