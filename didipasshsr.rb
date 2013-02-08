@@ -45,8 +45,8 @@ module DidIPassHSR
 		end
 
 		def run()
-			abort 'ERROR: HSR_USERNAME not set.' unless env['HSR_USERNAME']
-			abort 'ERROR: HSR_PASSWORD not set.' unless env['HSR_PASSWORD']
+			abort 'ERROR: HSR_USERNAME not set.' unless @env['HSR_USERNAME']
+			abort 'ERROR: HSR_PASSWORD not set.' unless @env['HSR_PASSWORD']
 
 			@mechanize_agent.add_auth(LOGIN_URL, @env['HSR_USERNAME'], @env['HSR_PASSWORD'])
 			@mechanize_agent.get(LOGIN_URL) do |page|
