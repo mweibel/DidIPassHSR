@@ -77,7 +77,7 @@ module DidIPassHSR
 		end
 
 		def fetch_report()
-			print "Fetching report..."
+			puts "Fetching report..."
 			page = @mechanize_agent.get(REPORT_URL)
 			login_hiddenform(page)
 		end
@@ -101,7 +101,6 @@ module DidIPassHSR
 		def notify(semester, grades)
 			puts "Notifying..."
 			notified = 0
-			print semester
 			sem_cache = @cache.get(semester)
 			grades.each do |desc, new_grade|
 				cached_grade = sem_cache[desc]
@@ -189,12 +188,9 @@ module DidIPassHSR
 
 			def get(semester)
 				cached = @cache.get(semester)
-				print cached
 				if cached != nil
-					print JSON.parse(cached)
 					return JSON.parse(cached)
 				end
-				print 'foobar'
 				return {}
 			end
 
