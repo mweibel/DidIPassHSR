@@ -24,6 +24,7 @@ GEM
     ntlm-http (0.1.1)
     polyglot (0.3.3)
     prowl (0.1.3)
+    rake (10.0.3)
     redis (3.0.2)
     treetop (1.4.12)
       polyglot
@@ -41,4 +42,5 @@ DEPENDENCIES
   mail
   mechanize
   prowl
+  rake
   redis
