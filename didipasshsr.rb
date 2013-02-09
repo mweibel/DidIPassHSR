@@ -36,7 +36,7 @@ module DidIPassHSR
 
 				@notifier = Notifiers.const_get("#{env['NOTIFIER']}Notifier").new(env)
 			else
-				@notifier = Notifiers::DryNotifier.new(env)
+				@notifier = Notifiers::DummyNotifier.new(env)
 			end
 
 			abort 'ERROR: CACHE not set.' unless env['CACHE']
@@ -105,7 +105,8 @@ module DidIPassHSR
 			grades.each do |desc, new_grade|
 				cached_grade = sem_cache[desc]
 				if (not cached_grade or cached_grade == "***") and new_grade != "***" and new_grade != cached_grade
-					@notifier.notify(desc, new_grade.to_f)
+					new_grade = new_grade.to_f
+					@notifier.notify(desc, new_grade)
 					sem_cache[desc] = new_grade
 					notified += 1
 				end
@@ -132,6 +133,24 @@ module DidIPassHSR
 
 			def flush
 				raise NotImplementedError
+			end
+		end
+
+		class DummyCache < Interface
+			def initialize(env)
+				@cache = {}
+			end
+
+			def get(semester)
+				return @cache[semester] || {}
+			end
+
+			def set(semester, grades)
+				@cache[semester] = grades
+			end
+
+			def flush
+				@cache = {}
 			end
 		end
 
@@ -174,7 +193,7 @@ module DidIPassHSR
 
 			def flush
 				require 'fileutils'
-				FileUtils.rm_rf(File.join(@path, "*"))
+				FileUtils.rm_rf(File.join(@path, "."), secure: true)
 			end
 		end
 
@@ -216,9 +235,9 @@ module DidIPassHSR
 			end
 		end
 
-		class DryNotifier < Interface
+		class DummyNotifier < Interface
 			def initialize(env)
-				puts "Dry run..."
+				puts ""
 			end
 
 			def notify(desc, grade)
