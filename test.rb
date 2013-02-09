@@ -24,10 +24,12 @@ class DidIPassHSRTest < Test::Unit::TestCase
 		'Test 4 for DidIPassHSR' => '3.0'
 	}
 	TEST_SEMESTER = 'TestSemester'
+	LOGDEV = RUBY_PLATFORM =~ /mswin|mingw/ ? 'NUL:' : '/dev/null'
 	MY_ENV = {
 		'CACHE' => 'Dummy',
 		'CACHE_PATH' => './.test-cache',
-		'NOTIFIER' => 'Dummy'
+		'NOTIFIER' => 'Dummy',
+		'LOGDEV' => LOGDEV
 	}
 
 	def setup

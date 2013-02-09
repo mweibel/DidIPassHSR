@@ -13,6 +13,7 @@
 #
 require 'rubygems'
 require 'bundler'
+require 'logger'
 require 'json'
 
 Bundler.require(:default, (ENV['RACK_ENV'] ||= :development.to_s).to_sym)
@@ -31,16 +32,23 @@ module DidIPassHSR
 
 		def initialize(env)
 			@env = env
+
+			if env['LOGDEV']
+				@log = Logger.new(env['LOGDEV'])
+			else
+				@log = Logger.new(STDOUT)
+			end
+
 			if not env['DRY_RUN']
 				abort 'ERROR: NOTIFIER not set.' unless env['NOTIFIER']
 
-				@notifier = Notifiers.const_get("#{env['NOTIFIER']}Notifier").new(env)
+				@notifier = Notifiers.const_get("#{env['NOTIFIER']}Notifier").new(env, @log)
 			else
-				@notifier = Notifiers::DummyNotifier.new(env)
+				@notifier = Notifiers::DummyNotifier.new(env, @log)
 			end
 
 			abort 'ERROR: CACHE not set.' unless env['CACHE']
-			@cache = Cache.const_get("#{env['CACHE']}Cache").new(env)
+			@cache = Cache.const_get("#{env['CACHE']}Cache").new(env, @log)
 			@mechanize_agent = Mechanize.new
 		end
 
@@ -50,7 +58,7 @@ module DidIPassHSR
 
 			@mechanize_agent.add_auth(LOGIN_URL, @env['HSR_USERNAME'], @env['HSR_PASSWORD'])
 			@mechanize_agent.get(LOGIN_URL) do |page|
-				puts "Loaded Page..."
+				@log.info "Loaded Page..."
 				login(page)
 				report = fetch_report()
 				semester, grades = parse(report)
@@ -59,7 +67,7 @@ module DidIPassHSR
 		end
 
 		def login(page)
-			puts "Logging in..."
+			@log.info "Logging in..."
 			form = page.form('aspnetForm')
 			if form
 				form['ctl00$ContentPlaceHolder1$UsernameTextBox'] = @env['HSR_USERNAME']
@@ -77,13 +85,13 @@ module DidIPassHSR
 		end
 
 		def fetch_report()
-			puts "Fetching report..."
+			@log.info "Fetching report..."
 			page = @mechanize_agent.get(REPORT_URL)
 			login_hiddenform(page)
 		end
 
 		def parse(report)
-			puts "Parsing report..."
+			@log.info "Parsing report..."
 			semester = report.search(SEMESTER_XPATH).text
 			semester = semester.gsub(/[\r\n\t ]/, '').gsub(/[^a-zA-Z0-9]/u, '-')
 
@@ -99,7 +107,7 @@ module DidIPassHSR
 		end
 
 		def notify(semester, grades)
-			puts "Notifying..."
+			@log.info "Notifying..."
 			notified = 0
 			sem_cache = @cache.get(semester)
 			grades.each do |desc, new_grade|
@@ -119,7 +127,7 @@ module DidIPassHSR
 
 	module Cache
 		class Interface
-			def initialize(env)
+			def initialize(env, log)
 				raise NotImplementedError
 			end
 
@@ -137,8 +145,9 @@ module DidIPassHSR
 		end
 
 		class DummyCache < Interface
-			def initialize(env)
+			def initialize(env, log)
 				@cache = {}
+				@log = log
 			end
 
 			def get(semester)
@@ -155,7 +164,9 @@ module DidIPassHSR
 		end
 
 		class FileCache < Interface
-			def initialize(env)
+			def initialize(env, log)
+				@log = log
+
 				if not env['CACHE_PATH']
 					@path = File.join(Dir.pwd, ".cache")
 				else
@@ -200,7 +211,8 @@ module DidIPassHSR
 		class RedisCache < Interface
 			require 'redis'
 
-			def initialize(env)
+			def initialize(env, log)
+				@log = log
 				uri = URI.parse(ENV['REDISTOGO_URL'] || ENV['REDISCLOUD_URL'] || ENV['MYREDIS_URL'] || 'http://localhost:6379')
 				@cache = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
 			end
@@ -226,7 +238,7 @@ module DidIPassHSR
 
 	module Notifiers
 		class Interface
-			def initialize(env)
+			def initialize(env, log)
 				raise NotImplementedError
 			end
 
@@ -236,12 +248,13 @@ module DidIPassHSR
 		end
 
 		class DummyNotifier < Interface
-			def initialize(env)
-				puts ""
+			def initialize(env, log)
+				@log = log
+				@log.info ""
 			end
 
 			def notify(desc, grade)
-				puts "#{desc} - #{grade}"
+				@log.info "#{desc} - #{grade}"
 			end
 		end
 
@@ -249,7 +262,8 @@ module DidIPassHSR
 		class ProwlNotifier < Interface
 			require 'prowl'
 
-			def initialize(env)
+			def initialize(env, log)
+				@log = log
 				abort 'ERROR: PROWL_API_KEY not set.' unless env['PROWL_API_KEY']
 
 				@p = Prowl.new(:apikey => env['PROWL_API_KEY'], :application => 'Did I Pass')
@@ -275,7 +289,8 @@ module DidIPassHSR
 		class EmailNotifier < Interface
 			require 'mail'
 
-			def initialize(env)
+			def initialize(env, log)
+				@log = log
 				abort 'Error: NOTIFICATION_EMAIL variable not set' unless ENV['NOTIFICATION_EMAIL']
 				Mail.defaults do
 					delivery_method :smtp, { :address => 'smtp.sendgrid.net',
@@ -312,7 +327,7 @@ module DidIPassHSR
 						body body_html
 					end
 				end
-				puts "Email probably sent."
+				@log.info "Email probably sent."
 			end
 		end
 	end
