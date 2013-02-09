@@ -1,5 +1,6 @@
 # Did I Pass for HSR
 
+[![Build Status](https://travis-ci.org/mweibel/DidIPassHSR.png)](https://travis-ci.org/mweibel/DidIPassHSR)
 
 ## Installation on Heroku
 
