@@ -38,6 +38,11 @@ module DidIPassHSR
 			else
 				@log = Logger.new(STDOUT)
 			end
+			if env['LOG_SEVERITY']
+				@log.level = env['LOG_SEVERITY']
+			else
+				@log.level = Logger::INFO
+			end
 
 			if not env['DRY_RUN']
 				abort 'ERROR: NOTIFIER not set.' unless env['NOTIFIER']

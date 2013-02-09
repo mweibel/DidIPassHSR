@@ -46,27 +46,31 @@ Test if the task works...
 
 
 ## Installation somewhere else
-```
-# Clone the repository
-git clone https://github.com/mweibel/DidIPass.git && cd DidIPass
 
-# Install dependencies
-bundle install
+Clone the repository
 
-# Configuration (might be needed to prefix before the command in the cronjob config
-export NOTIFIER='Prowl' # email notifier currently only works on heroku
-export HSR_USERNAME='<your-hsr-username>'
-export HSR_PASSWORD='<your-hsr-password>'
-export PROWL_API_KEY='<prowl-api-key>'
-export CACHE='Redis' or export CACHE='File'
-export CACHE_PATH='<path>' # if CACHE='FILE' && default path is not working for you (pwd of task.rb + /.cache)
+    git clone https://github.com/mweibel/DidIPass.git && cd DidIPass
 
-# Edit crontab to add it
-crontab -e
+Install dependencies
 
-# Run it for testing
-./task.rb
-```
+    bundle install
+
+Configuration (might be needed to prefix before the command in the cronjob config
+
+    export NOTIFIER='Prowl' # email notifier currently only works on heroku
+    export HSR_USERNAME='<your-hsr-username>'
+    export HSR_PASSWORD='<your-hsr-password>'
+    export PROWL_API_KEY='<prowl-api-key>'
+    export CACHE='Redis' or export CACHE='File'
+    export CACHE_PATH='<path>' # if CACHE='FILE' && default path is not working for you (pwd of task.rb + /.cache)
+
+Edit crontab to add it
+
+    crontab -e
+
+Run it for testing
+
+    ./task.rb
 
 ## License
 DidIPassHSR is released under MIT License (see LICENSE).
@@ -76,8 +80,7 @@ Following stuff would be easily doable and a nice to have:
 
   - Configuration with e.g. a YAML file instead of ENV variables for setups w/o heroku
   - More notifiers
+  - More tests
 
 ## Testing
-1. Export all needed environment variables as usual (maybe with a different Cache path)
-2. Run `ruby test.rb`
-3. SUCCESS OR FAIL?
+1. run `ruby test.rb`
