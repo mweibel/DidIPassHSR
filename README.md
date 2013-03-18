@@ -8,6 +8,22 @@ Clone the repository
 
     git clone git://github.com/mweibel/DidIPassHSR.git && cd DidIPassHSR
 
+### The easy way
+
+Install [heroku.json](https://github.com/rainforestapp/heroku.json#herokujson)
+
+	heroku plugins:install git@github.com:rainforestapp/heroku.json.git
+
+Change the env variables in heroku.json
+
+	vi heroku.json
+
+Bootstrap the app
+
+	heroku bootstrap
+
+### The hard way
+
 Create a new app
 
     heroku create
