@@ -19,7 +19,7 @@ require './didipasshsr'
 
 class DidIPassHSRTest < Test::Unit::TestCase
 	TEST_GRADES = {
-		'Test 1 for DidIPassHSR' => '***',
+		'Test 1 for DidIPassHSR' => '****',
 		'Test 2 for DidIPassHSR' => '5.5',
 		'Test 3 for DidIPassHSR' => '4.5',
 		'Test 4 for DidIPassHSR' => '3.0',
