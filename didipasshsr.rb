@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
 #
 # Check your grades of the current semester
 #
@@ -24,8 +25,7 @@ module DidIPassHSR
 		attr_accessor :notifier
 		attr_accessor :cache
 
-		SEMESTER_XPATH = '//div[@id="13xB_gr"]/table[1]//tr[2]/td[1]/table//tr[7]/td[2]/div'
-		GRADES_XPATH = '//div[@id="13xB_gr"]/table[1]//tr[4]/td[1]/table//tr'
+		SEMESTER_XPATH = '//div[@id="14xB_gr"]/table[1]//tr[2]/td[1]/table//tr[7]/td[2]/div'
 
 		LOGIN_URL = 'https://adfs.hsr.ch/adfs/ls/?wa=wsignin1.0&wtrealm=https%3a%2f%2funterricht.hsr.ch%3a443%2f&wctx=https%3a%2f%2funterricht.hsr.ch%2f'
 		REPORT_URL = 'https://unterricht.hsr.ch/MyStudy/Reporting/TermReport'
@@ -64,12 +64,21 @@ module DidIPassHSR
 			abort 'ERROR: HSR_PASSWORD not set.' unless @env['HSR_PASSWORD']
 
 			@mechanize_agent.add_auth(LOGIN_URL, @env['HSR_USERNAME'], @env['HSR_PASSWORD'])
-			@mechanize_agent.get(LOGIN_URL) do |page|
-				@log.info "Loaded Page..."
-				login(page)
-				report = fetch_report()
-				semester, grades = parse(report)
-				return notify(semester, grades)
+			begin
+				@mechanize_agent.get(LOGIN_URL) do |page|
+					@log.info "Loaded Page..."
+					login(page)
+					report = fetch_report()
+					semester, grades = parse(report)
+					return notify(semester, grades)
+				end
+			rescue OpenSSL::SSL::SSLError => e
+				@log.error "Could not load the login url due to an SSL verify error."
+				@log.error "Please specify a correct SSL_CERT_FILE env variable."
+				@log.error "In case you're using OSX: brew install curl-ca-bundle."
+				@log.error "Full message & stacktrace follow:"
+				@log.error e.message
+				e.backtrace.each { |line| logger.error line }
 			end
 		end
 
@@ -103,11 +112,20 @@ module DidIPassHSR
 			semester = semester.gsub(/[\r\n\t ]/, '').gsub(/[^a-zA-Z0-9]/u, '-')
 
 			grades = {}
-			report.search(GRADES_XPATH)[3..-3].each do |tr|
+			report.search("div:contains('Übersicht Module')").last.parent.parent.parent.search('tr')[3..-3].each do |tr|
 				tds = tr.search('td')
 				description = tds[2].search('div/div/div/a').text
 				grade = tds[3].children.text || tds[3].children[0].text
-				grades[description] = grade.gsub(/[^*0-9.]/, '')
+				grade = grade.gsub(/[^*a-zA-Z0-9.]/, '')
+
+				# ugly fix for BN and nBN grades
+				if grade == '*BN'
+					grade = "6.0"
+				elsif grade == '*nBN'
+					grade = "1.0"
+				end
+
+				grades[description] = grade
 			end
 
 			return semester, grades

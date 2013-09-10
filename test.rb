@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
 #
 # Dummy test
 #
@@ -21,7 +22,9 @@ class DidIPassHSRTest < Test::Unit::TestCase
 		'Test 1 for DidIPassHSR' => '***',
 		'Test 2 for DidIPassHSR' => '5.5',
 		'Test 3 for DidIPassHSR' => '4.5',
-		'Test 4 for DidIPassHSR' => '3.0'
+		'Test 4 for DidIPassHSR' => '3.0',
+		'Test 5 for DidIPassHSR' => '6.0',
+		'Test 6 for DidIPassHSR' => '1.0',
 	}
 	TEST_SEMESTER = 'TestSemester'
 	LOGDEV = RUBY_PLATFORM =~ /mswin|mingw/ ? 'NUL:' : '/dev/null'
@@ -48,7 +51,7 @@ class DidIPassHSRTest < Test::Unit::TestCase
 	end
 
 	def test_notify_and_cache
-		assert_equal 3, _notifier, "Number of sent notifications are not correct"
+		assert_equal 5, _notifier, "Number of sent notifications are not correct"
 		assert_equal 0, _notifier, "All notifications should be cached now"
 	end
 

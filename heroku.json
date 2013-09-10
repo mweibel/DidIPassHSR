@@ -1,0 +1,13 @@
+{
+  "addons": [
+    "redistogo:nano",
+    "scheduler:standard"
+  ],
+  "env": {
+    "CACHE": "Redis|File",
+    "HSR_USERNAME": "YOUR USERNAME",
+    "NOTIFIER": "Prowl|Email",
+    "PROWL_API_KEY": "PROWL API KEY",
+    "HSR_PASSWORD": "HSR_PW"
+  }
+}
