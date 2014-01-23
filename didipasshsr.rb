@@ -30,7 +30,7 @@ module DidIPassHSR
 		LOGIN_URL = 'https://adfs.hsr.ch/adfs/ls/?wa=wsignin1.0&wtrealm=https%3a%2f%2funterricht.hsr.ch%3a443%2f&wctx=https%3a%2f%2funterricht.hsr.ch%2f'
 		REPORT_URL = 'https://unterricht.hsr.ch/MyStudy/Reporting/TermReport'
 
-		GRADE_EMPTY = "****"
+		GRADE_EMPTY = "***"
 
 		def initialize(env)
 			@env = env
